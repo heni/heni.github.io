@@ -93,10 +93,10 @@
         var pullUrl = 'https://api.github.com/repos/ML-Works/frontend/pulls/' + pullId;
         var data = httpGetJson(pullUrl, token);
 
-        var baseSha = data["base"]["sha"];
-        var totalFiles = data["changed_files"];
-
-        var urls = getChangedFiles(pullId, token, baseSha, totalFiles);
+        //var baseSha = data["base"]["sha"];
+        //var totalFiles = data["changed_files"];
+        //
+        //var urls = getChangedFiles(pullId, token, baseSha, totalFiles);
         function getBody(url, onload) {
             var xhr = new XMLHttpRequest();
             var html = "";
