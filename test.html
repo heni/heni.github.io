@@ -1,0 +1,179 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://scanmath.com/solutions/14.5.0/css/style.css">
+    <link rel="stylesheet" href="https://scanmath.com/solutions/14.5.0/css/result.css">
+    <script type="text/javascript" src="https://scanmath.com/solutions/14.5.0/js/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+    <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG-full" type="text/javascript"></script>
+    <script type="text/javascript">
+        function getJsonFromUrl() {
+            var query = location.search.substr(1);
+            var result = {};
+            query.split("&").forEach(function(part) {
+                var item = part.split("=");
+                result[item[0]] = decodeURIComponent(item[1]);
+            });
+            return result;
+        };
+
+        function httpGetJson(url, token) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.open( "GET", url, false );
+            xmlHttp.setRequestHeader("Authorization", "token " + token);
+            xmlHttp.send();
+            return JSON.parse(xmlHttp.response);
+        }
+
+        function getURLWithParams(url, params) {
+            return url + "?" + Object.keys(params).map(function(k) {
+                return encodeURIComponent(k) + '=' + encodeURIComponent(params[k])
+            }).join('&');
+        }
+
+        function foo(response) {
+          var meta = response.meta;
+          var data = response.data;
+          console.log(meta);
+          console.log(data);
+        }
+
+        function getToken(clientID, clientSecret, code) {
+            var xmlHttp = new XMLHttpRequest();
+            var url = getURLWithParams("https://github.com/login/oauth/access_token", {"client_id": clientID, "client_secret": clientSecret, "code": code});
+
+            /*var script = document.createElement('script');
+            script.src = url;
+            document.getElementsByTagName('head')[0].appendChild(script);
+            console.log(window.location.origin);
+            */
+            xmlHttp.open( "POST", url, false );
+            xmlHttp.setRequestHeader("Accept", "application/json");
+            xmlHttp.setRequestHeader("Access-Control-Allow-Origin", "*");
+            xmlHttp.setRequestHeader("Access-Control-Expose-Headers", "ETag, Link, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval");
+            xmlHttp.setRequestHeader("Access-Control-Allow-Credentials", true);
+
+            xmlHttp.send();
+            console.log(xmlHttp.response);
+            if (xmlHttp.response["scope"] != "repo") {
+                alert("Error getting scope access!");
+            }
+            return xmlHttp.response["access_token"];
+        }
+
+        function getChangedFiles(pullId, accessToken, baseSha, totalFiles) {
+            var urls = new Array(2);
+            urls[0] = new Array();
+            urls[1] = new Array();
+            for (var page = 1; page < totalFiles / 30 + 1 + (totalFiles % 30 != 0); page++) {
+                var files = httpGetJson("https://api.github.com/repos/ML-Works/frontend/pulls/" + pullId + "/files?page=" + page.toString(), accessToken);
+                if (files.length == 0) {
+                    break;
+                }
+                for (var i = 0; i < files.length; i++) {
+                    if (files[i]["filename"].endsWith(".html") && files[i]["filename"].includes("solution")) {
+                        urls[0].push(files[i]["contents_url"].split("?")[0] + "?ref=" + baseSha);
+                        urls[1].push(files[i]["contents_url"]);
+                    }
+                }
+            }
+            return urls;
+        }
+
+        var urlParams = getJsonFromUrl();
+        var pullId = urlParams["pull"];        
+        var clientID = urlParams["client_id"];
+        var clientSecret = urlParams["client_secret"];
+        var code = urlParams["code"];
+        var token = getToken(clientID, clientSecret, code);
+
+        var pullUrl = 'https://api.github.com/repos/ML-Works/frontend/pulls/' + pullId;
+        var data = httpGetJson(pullUrl, token);
+
+        var baseSha = data["base"]["sha"];
+        var totalFiles = data["changed_files"];
+
+        var urls = getChangedFiles(pullId, token, baseSha, totalFiles);
+        function getBody(url, onload) {
+            var xhr = new XMLHttpRequest();
+            var html = "";
+            xhr.open("GET", url, true);
+            xhr.setRequestHeader("Authorization", "token " + token);
+            
+            xhr.onload = function() {
+                if (xhr.status != 200) {
+                    html = "<html><head></head><body>No such file!</body></html>";
+                    // var doc = parser.parseFromString(html, "text/html");
+                    onload(html);
+                } else {
+                    var data = JSON.parse(xhr.response);
+                    html = window.atob(data.content);
+                    // var doc = parser.parseFromString(html, "text/html");
+                    onload(html);
+                }   
+            }
+
+            xhr.send();
+        }
+
+        window.onload = function () {
+            var body = document.body,
+                tbl = document.createElement('table');
+            tbl.style.width = '100%';
+            tbl.style.border = '1px solid black';
+            
+            var bodies = new Array(urls.length);
+            bodies[0] = new Array(urls[0].length);
+            bodies[1] = new Array(urls[1].length);
+
+            for (var i = 0; i < bodies.length; ++i) {
+                for (var j = 0; j < bodies[i].length; ++j) {
+                    bodies[i][j] = null;
+                }
+            }
+
+            var counter = 0;
+            var needFiles = urls[0].length * 2;
+
+            var onEvent = function() {
+                counter += 1;
+                if (counter == needFiles) {
+                    var parser = new DOMParser();
+                    var apHead = null;
+                    for (var i = 0; i < urls[0].length; i++) {
+                        var tr = tbl.insertRow();
+                        for (var j = 0; j < 2; j++) {
+                            var td = tr.insertCell();
+                            bodies[j][i] = bodies[j][i].replace(/header/g, i.toString()+ "_" + j.toString() + "_header")
+                          
+                            var d = parser.parseFromString(bodies[j][i], "text/html");
+                            td.appendChild(document.createTextNode(urls[j][i]));
+                            td.appendChild(d.body);
+                            td.style.border = '1px solid black';
+                            td.style.width = "50%";
+                            td.style["vertical-align"] = "top";
+                        }
+                    }
+                    body.appendChild(tbl);
+                    // document.head.innerHTML = document.head.innerHTML + bodies[1][0].head.innerHTML;
+
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                }
+            }
+            var createTask = function(arr, i, j) {
+                return function(data) {
+                        arr[i][j] = data;
+                        onEvent();
+                    }; 
+            }
+            for (var i = 0; i < urls.length; i++) {
+                for (var j = 0; j < urls[i].length; j++) {
+                    getBody(urls[i][j], createTask(bodies, i, j));
+                }
+            }
+        }
+    </script>
+    
+
+</head>
+<body>TEST RESULTS</body>
+</html>
+
