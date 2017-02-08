@@ -17,7 +17,7 @@
 
         function httpGetJson(url, token) {
             var xmlHttp = new XMLHttpRequest();
-            xmlHttp.open( "GET", url, false );
+            xmlHttp.open( "GET", url, true);
             xmlHttp.setRequestHeader("Authorization", "token " + token);
             xmlHttp.send();
             return JSON.parse(xmlHttp.response);
@@ -49,7 +49,7 @@
             //xmlHttp.setRequestHeader("Origin", "https://heni.github.io/")
             //xmlHttp.send()
 
-            xmlHttp.open( "POST", url, false);
+            xmlHttp.open( "POST", url, true);
             xmlHttp.setRequestHeader("Accept", "application/json");
             //xmlHttp.setRequestHeader("Origin", "https://heni.github.io/");
             //xmlHttp.setRequestHeader("Access-Control-Allow-Origin", "*");
