@@ -46,12 +46,12 @@
             console.log(window.location.origin);
             */
             xmlHttp.open("OPTIONS", "https://api.github.com")
-            xmlHttp.setRequestHeader("Origin", "https://heni.github.io/")
+            //xmlHttp.setRequestHeader("Origin", "https://heni.github.io/")
             xmlHttp.send()
 
             xmlHttp.open( "POST", url, false );
             xmlHttp.setRequestHeader("Accept", "application/json");
-            xmlHttp.setRequestHeader("Origin", "https://heni.github.io/");
+            //xmlHttp.setRequestHeader("Origin", "https://heni.github.io/");
             //xmlHttp.setRequestHeader("Access-Control-Allow-Origin", "*");
             //xmlHttp.setRequestHeader("Access-Control-Expose-Headers", "ETag, Link, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval");
             //xmlHttp.setRequestHeader("Access-Control-Allow-Credentials", true);
