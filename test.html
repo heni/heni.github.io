@@ -50,6 +50,7 @@
             //xmlHttp.send()
 
             xmlHttp.open( "POST", url, true);
+            xmlHttp.withCredentials = "true";
             xmlHttp.setRequestHeader("Accept", "application/json");
             //xmlHttp.setRequestHeader("Origin", "https://heni.github.io/");
             //xmlHttp.setRequestHeader("Access-Control-Allow-Origin", "*");
